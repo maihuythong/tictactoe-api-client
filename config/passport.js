@@ -119,6 +119,8 @@ module.exports = (passport) => {
           User.findOne({ facebookId: profile.id }, (err, user) => {
             if (err) return done(err);
 
+            console.log(profile);
+
             if (user) {
               return done(null, user);
             } else {
@@ -127,7 +129,7 @@ module.exports = (passport) => {
               newUser.facebook.token = token;
               newUser.facebook.name =
                 profile.name.givenName + ' ' + profile.name.familyName;
-              newUser.facebook.email = profile.emails[0].value;
+              // newUser.facebook.email = profile.emails[0].value;
 
               newUser.save((err) => {
                 if (err) throw err;
