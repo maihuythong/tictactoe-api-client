@@ -36,7 +36,7 @@ module.exports.signin = (req, res, next) => {
         console.log(passportUser);
 
         return res.json({
-          // user: passportUser,
+          user: passportUser,
           token: passportUser.generateJWT(passportUser.username),
         });
       }
