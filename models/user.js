@@ -13,9 +13,9 @@ let user = mongoose.Schema({
     type: String,
     // required: true
   },
-  fullname: {
+  fullName: {
     type: String,
-    // required: true
+    required: true
   },
   password: {
     type: String,
