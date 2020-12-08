@@ -13,7 +13,11 @@ const checkAuth = require('./middlewares/check-auth');
 const cors = require('cors');
 const app = express();
 const server = require('http').Server(app);
-const io = require('socket.io')(server);
+const io = require('socket.io')(server, {
+  cors: {
+    origin: '*',
+  }
+});
 require('./socket/sockets.js')(io);
 
 const indexRouter = require('./routes/index');
