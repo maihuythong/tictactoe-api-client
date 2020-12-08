@@ -8,16 +8,17 @@ const session = require('express-session');
 require('dotenv').config();
 
 const dbConnector = require('./database/dbConnector');
+const checkAuth = require('./middlewares/check-auth');
+
+const cors = require('cors');
+const app = express();
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
+require('./socket/sockets.js')(io);
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const boardsRouter = require('./routes/boards');
-
-const checkAuth = require('./middlewares/check-auth');
-
-const cors = require('cors');
-
-const app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -47,6 +48,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 
 app.use(checkAuth);
+
 app.use('/', indexRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/boards', boardsRouter);
@@ -67,4 +69,4 @@ app.use(function (err, req, res, next) {
   res.render('error');
 });
 
-module.exports = app;
+module.exports = {app: app, server: server};
