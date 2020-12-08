@@ -55,6 +55,11 @@ let user = mongoose.Schema({
     email: String,
     name: String,
   },
+  status:{
+    type: String,
+    required: true,
+    default: 'offline'
+  }
 });
 
 user.methods.generateJWT = (username) => {
