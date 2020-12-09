@@ -15,7 +15,6 @@ module.exports.signup = (req, res, next) => {
           token: passportUser.generateJWT(passportUser.username),
         });
       }
-      console.log(info.message);
 
       // return res.status(400).json({ data: info.message });
       // res.send(info.message);
@@ -33,8 +32,6 @@ module.exports.signin = (req, res, next) => {
       if (err) return res.json({ errors: err });
 
       if (passportUser) {
-        console.log(passportUser);
-
         return res.json({
           user: passportUser,
           token: passportUser.generateJWT(passportUser.username),
@@ -58,8 +55,6 @@ module.exports.facebookSignIn = (req, res, next) => {
 
 module.exports.getme = async (req, res, next) => {
   const user = await User.findOne({ _id: req.userData.id });
-  console.log(user);
-
   if (user) {
     res.status(200).json(user);
   } else {

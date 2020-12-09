@@ -114,14 +114,10 @@ module.exports = (passport) => {
         profileFields: ['id', 'emails', 'name'],
       },
       (token, refreshToken, profile, done) => {
-        console.log('facebook');
 
         process.nextTick(() => {
           User.findOne({ facebookId: profile.id }, (err, user) => {
             if (err) return done(err);
-
-            console.log(profile);
-
             if (user) {
               return done(null, user);
             } else {
