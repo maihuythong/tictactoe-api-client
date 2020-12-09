@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 module.exports = async () => {
   try {
     const connect = await mongoose.connect(
-      // process.env.mongodbUrl,
-      process.env.mongodbUrlLocal,
+      process.env.mongodbUrl,
+      // process.env.mongodbUrlLocal,
       {
         useNewUrlParser: true,
         useUnifiedTopology: true,
