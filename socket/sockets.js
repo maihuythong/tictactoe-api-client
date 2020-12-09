@@ -6,15 +6,16 @@ const User = require('../models/user');
 module.exports = (io) => {
 
     io.on('connection', (socket) => {
+        console.log('user connected');
         socket.on('login', async (token) => {
             const decodedToken = await verifyToken(token.token);
             // handle case facebook, google (not username) ...
-            const id = await (await User.findOne({username: decodedToken.username}))._id;
+            const id = await (await User.findOne({username: decodedToken.username}))._id;   
             if(decodedToken){
-                const doc = await User.findOneAndUpdate({_id: id}, {status: 'online'}, {"new": true, useFindAndModify: false})
+                const doc = await setStatus(id,'online');
                 if(doc){
                     const listOnline = await User.find({status: 'online'});
-                    io.emit("list", {data: listOnline});
+                    io.emit("list", listOnline);
                 }
             }
         });
@@ -24,12 +25,15 @@ module.exports = (io) => {
             // handle case facebook, google (not username) ...
             const id = await (await User.findOne({username: decodedToken.username}))._id;
             if(decodedToken){
-                const doc = await User.findOneAndUpdate({_id: id}, {status: 'offline'}, {"new": true, useFindAndModify: false})
+                const doc = await setStatus(id,'offline');
                 if(doc){
                     const listOnline = await User.find({status: 'online'});
-                    io.emit("list", {data: listOnline});
+                    io.emit("list", listOnline);
                 }
             } 
+        })
+        socket.on('disconnect', (token)=> {
+            console.log('disconnect');
         })
     });
 };
@@ -42,6 +46,10 @@ const verifyToken = (token) => {
     } catch (e){
         return false;
     }
-} 
+}
+
+const setStatus = async (id, status) => {
+    return await User.findOneAndUpdate({ _id: id }, { status: status }, { "new": true, useFindAndModify: false });
+}
 
 // export default socket;
