@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const Game = require('../models/game');
 const {verifyToken} = require('../helpers/tokenUtils');
 
 const authentication = (io, socket) => {
@@ -10,8 +11,9 @@ const authentication = (io, socket) => {
     if (decodedToken) {
       const doc = await setStatus(id, "online");
       if (doc) {
-        const listOnline = await User.find({ status: "online" });
-        io.emit("list", listOnline);
+        const listUsers = await User.find({ status: "online" });
+        const listGames = await Game.find({ status: "playing" });
+        io.emit("list", {listUsers: listUsers, listGames: listGames});
       }
     }
   });
@@ -24,8 +26,8 @@ const authentication = (io, socket) => {
     if (decodedToken) {
       const doc = await setStatus(id, "offline");
       if (doc) {
-        const listOnline = await User.find({ status: "online" });
-        io.emit("list", listOnline);
+        const listUsers = await User.find({ status: "online" });
+        io.emit("list", {listUsers});
       }
     }
   });

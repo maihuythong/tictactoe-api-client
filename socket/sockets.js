@@ -9,13 +9,6 @@ module.exports = (io) => {
     authentication(io, socket);
     game(io, socket);
 
-    socket.on("loadBoard", () => {});
-
-    socket.on("a", () => {
-      console.log("aaaa");
-      socket.broadcast.emit("hello", "message");
-    });
-
     socket.on("disconnect", (token) => {
       console.log("disconnect");
     });
