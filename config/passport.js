@@ -122,6 +122,7 @@ module.exports = (passport) => {
               return done(null, user);
             } else {
               let newUser = new User();
+              newUser.username = profile.id;
               newUser.facebookId = profile.id;
               newUser.facebook.token = token;
               newUser.facebook.name =
@@ -157,7 +158,6 @@ module.exports = (passport) => {
               return done(null, user);
             } else {
               let newUser = new User();
-
               newUser.username = profile.id;
               newUser.google.token = accessToken;
               newUser.google.name = profile.displayName;
