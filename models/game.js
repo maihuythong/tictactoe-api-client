@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const AutoIncrement = require('mongoose-sequence')(mongoose);
+const AutoIncrement = require("mongoose-sequence")(mongoose);
 const { ErrorHandler } = require("../helpers/errorHandler");
 
 const GameSchema = new mongoose.Schema({
@@ -12,8 +12,8 @@ const GameSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['playing', 'completed'],
-    default: 'playing',
+    enum: ["playing", "completed"],
+    default: "playing",
   },
   host: {
     type: mongoose.ObjectId,
@@ -24,13 +24,25 @@ const GameSchema = new mongoose.Schema({
     ref: "User",
     type: mongoose.ObjectId,
   },
+  winner: {
+    ref: "User",
+    type: mongoose.ObjectId,
+  },
+  loser: {
+    ref: "User",
+    type: mongoose.ObjectId,
+  },
   history: {
     type: Array,
+    default: [],
+  },
+  winnerLine: {
+    type: Array,
+    default: [],
   },
 });
 
-GameSchema.plugin(AutoIncrement, {inc_field: 'gameId'});
-
+GameSchema.plugin(AutoIncrement, { inc_field: "gameId" });
 
 const Game = mongoose.model("Games", GameSchema);
 

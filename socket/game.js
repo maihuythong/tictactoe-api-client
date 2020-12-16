@@ -22,17 +22,22 @@ const game = (io, socket) => {
 
     // const decodedToken = verifyToken(data.token);
     const game = await Game.findOne({ gameId: data.gameId });
-    const guest = await User.findOne({ _id: game.guest });
+    let guest;
+    if(game.guest){
+      guest = await User.findOne({ _id: game.guest });
+    }
     const host = await User.findOne({ _id: game.host });
 
     let guestResponse = null;
-    if(guest){
+    if (guest) {
       guestResponse = {
+        _id: guest._id,
         username: guest.username,
         fullName: guest.fullName,
       };
     }
     const hostResponse = {
+      _id: host._id,
       username: host.username,
       fullName: host.fullName,
     };
@@ -42,16 +47,43 @@ const game = (io, socket) => {
     });
   });
 
-  socket.on("joinExistedRoom", async (data) => {
-    socket.join(data.gameId.toString());
+  socket.on("sendMessage", async (data) => {
+    io.to(data.gameId).emit("newMessage", {
+      message: data.newMessage,
+    });
   });
 
-  socket.on("sendMessage", async (data) => {
-    console.log(data.gameId);
-    io.to(data.gameId).emit("newMessage", {
-      message: data.message,
-    });
-  })
+  socket.on("play", async (data) => {
+    console.log(data);
+    io.to(data.gameId).emit("newPlay", { position: data.position });
+  });
+
+  socket.on("finishGame", async (data) => {
+    const doc = await Game.findOneAndUpdate(
+      { gameId: data.gameId },
+      {
+        winner: data.winner,
+        loser: data.loser,
+        history: data.history,
+        winnerLine: data.winnerLine,
+      },
+      { new: true }
+    );
+
+    if (doc) {
+      const win = await User.findOneAndUpdate(
+        { _id: data.winner },
+        { $inc: { win: 1 } },
+        { new: true }
+      );
+      
+      const lose = await User.findOneAndUpdate(
+        { _id: data.loser },
+        { $inc: { lose: 1 } },
+        { new: true }
+      );
+    }
+  });
 };
 
 module.exports = game;

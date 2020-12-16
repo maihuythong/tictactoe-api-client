@@ -59,7 +59,22 @@ let user = mongoose.Schema({
     type: String,
     required: true,
     default: 'offline'
-  }
+  },
+  win: {
+    type: Number,
+    default: 0,
+    required: true
+  },
+  lose: {
+    type: Number,
+    default: 0,
+    required: true
+  },
+  draw: {
+    type: Number,
+    default: 0,
+    required: true
+  },
 });
 
 user.methods.generateJWT = (username) => {
