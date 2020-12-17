@@ -54,11 +54,11 @@ const game = (io, socket) => {
   });
 
   socket.on("play", async (data) => {
-    console.log(data);
     io.to(data.gameId).emit("newPlay", { position: data.position });
   });
 
   socket.on("finishGame", async (data) => {
+    
     const doc = await Game.findOneAndUpdate(
       { gameId: data.gameId },
       {
@@ -69,6 +69,12 @@ const game = (io, socket) => {
       },
       { new: true }
     );
+    console.log(data);
+    io.to(data.gameId).emit('gameFinished', {
+      winner: data.winner,
+      loser: data.loser,
+      winnerLine: data.winnerLine,
+    })
 
     if (doc) {
       const win = await User.findOneAndUpdate(
@@ -83,6 +89,9 @@ const game = (io, socket) => {
         { new: true }
       );
     }
+
+    
+    
   });
 };
 
