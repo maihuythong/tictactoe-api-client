@@ -1,8 +1,8 @@
 class ErrorHandler extends Error {
   constructor(statusCode, message) {
-      super();
+      super(message);
+      this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
       this.statusCode = statusCode;
-      this.message = message;
   }
 }
 

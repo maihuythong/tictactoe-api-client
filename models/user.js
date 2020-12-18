@@ -7,6 +7,7 @@ let user = mongoose.Schema({
   username: {
     type: String,
     unique: true,
+    trim: true,
     // required: true
   },
   email: {
@@ -15,7 +16,8 @@ let user = mongoose.Schema({
   },
   fullName: {
     type: String,
-    required: true
+    required: true,
+    default: 'No Name'
   },
   password: {
     type: String,
