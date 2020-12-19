@@ -3,10 +3,8 @@ content-type: application/json
 Accept: application/json
 
 {
-  "username": "huythong",
+  "username": "huythong1",
   "password": "123123",
-  "firstName": "Huy",
-  "lastName": "Thông",
   "fullName": "Huy Thông",
   "email": "maihuythong99@gmail.com"
 }

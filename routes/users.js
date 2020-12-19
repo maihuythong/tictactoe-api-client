@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
-
 const passport = require('passport');
-const userController = require('../controllers/users');
+const usersController = require('../controllers/usersController');
+const auth = require('../middlewares/auth');
 
-router.post('/sign-up', userController.signup);
-router.post('/sign-in', userController.signin);
-router.get('/auth/google', userController.googleSignIn);
+
+router.post('/sign-up', usersController.signup);
+router.post('/sign-in', usersController.signin);
+
+router.get('/auth/google', usersController.googleSignIn);
 router.get(
   '/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
@@ -16,7 +18,7 @@ router.get(
   }
 );
 
-router.get('/auth/facebook', userController.facebookSignIn);
+router.get('/auth/facebook', usersController.facebookSignIn);
 router.get(
   '/auth/facebook/callback',
   passport.authenticate('facebook', {
@@ -28,7 +30,7 @@ router.get(
   }
 );
 
-router.get('/me', userController.getme);
-router.put('/me', userController.updateInfo);
+router.get('/me', auth, usersController.getMe);
+router.put('/me', auth, usersController.updateInfo);
 
 module.exports = router;

@@ -1,22 +1,20 @@
 const Game = require("../models/game");
 const User = require("../models/user");
-const { verifyToken } = require("../helpers/tokenUtils");
-const user = require("../models/user");
+const catchAsyncSocket = require("../helpers/catchAsyncSocket");
 
 const game = (io, socket) => {
-  socket.on("joinRoom", async (data) => {
+  socket.on("joinRoom", catchAsyncSocket( async (data) => {
     socket.join(data.gameId.toString());
     // console.log("User has join room" + data.gameId);
     io.to(data.gameId).emit("gameCreated", {
       message: `Created game ${data.gameId}`,
       gameId: data.gameId,
     });
-
     const games = await Game.find({ status: "playing" });
     socket.broadcast.emit("newGameCreated", games);
-  });
+  }));
 
-  socket.on("joinGame", async (data) => {
+  socket.on("joinGame", catchAsyncSocket (async (data) => {
     console.log(`join ${data.gameId}`);
     socket.join(data.gameId);
 
@@ -45,20 +43,19 @@ const game = (io, socket) => {
       host: hostResponse,
       guest: guestResponse,
     });
-  });
+  }));
 
-  socket.on("sendMessage", async (data) => {
+  socket.on("sendMessage",catchAsyncSocket( async (data) => {
     io.to(data.gameId).emit("newMessage", {
       message: data.newMessage,
     });
-  });
+  }));
 
-  socket.on("play", async (data) => {
+  socket.on("play", (data) => {
     io.to(data.gameId).emit("newPlay", { position: data.position });
   });
 
-  socket.on("finishGame", async (data) => {
-    
+  socket.on("finishGame", catchAsyncSocket( async (data) => {
     const doc = await Game.findOneAndUpdate(
       { gameId: data.gameId },
       {
@@ -69,7 +66,7 @@ const game = (io, socket) => {
       },
       { new: true }
     );
-    console.log(data);
+
     io.to(data.gameId).emit('gameFinished', {
       winner: data.winner,
       loser: data.loser,
@@ -77,22 +74,25 @@ const game = (io, socket) => {
     })
 
     if (doc) {
-      const win = await User.findOneAndUpdate(
-        { _id: data.winner },
-        { $inc: { win: 1 } },
-        { new: true }
-      );
-      
-      const lose = await User.findOneAndUpdate(
-        { _id: data.loser },
-        { $inc: { lose: 1 } },
-        { new: true }
-      );
-    }
+      try{
+        const win = await User.findOneAndUpdate(
+          { _id: data.winner },
+          { $inc: { win: 1 } },
+          { new: true }
+        );
 
+        const lose = await User.findOneAndUpdate(
+          { _id: data.loser },
+          { $inc: { lose: 1 } },
+          { new: true }
+        );
+      }catch(err){
+        console.log(err);
+      }
+      
+    }
     
-    
-  });
+  }));
 };
 
 module.exports = game;
