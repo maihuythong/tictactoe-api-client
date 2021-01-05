@@ -4,23 +4,31 @@ const { ErrorHandler } = require("../helpers/errorHandler");
 const factoryController = require("./factoryController");
 const catchAsync = require("../helpers/catchAsync");
 const { signUpValidation, signInValidation } = require("../helpers/validation");
+const Email = require("./../helpers/email");
+const { verifyToken } = require("../helpers/tokenUtils");
 
-
-exports.signup = catchAsync(async(req, res, next) => {
+exports.signup = catchAsync(async (req, res, next) => {
   const { error } = await signUpValidation(req.body);
   if (error) return next(new ErrorHandler(400, error));
   return passport.authenticate(
     "local-signup",
     { session: false },
-    (err, passportUser, info) => {
+    async (err, passportUser, info) => {
       if (err) {
         return next(new ErrorHandler(400, err));
       }
 
       if (passportUser) {
+        const token = passportUser.generateJWT(passportUser.username);
+        const url = `${process.env.SERVER_URL_LOCAL}/users/active-email/${token}`;
+        await new Email(passportUser, url).sendWelcome();
         return res.status(201).json({
-          user: passportUser,
-          token: passportUser.generateJWT(passportUser.username),
+          status: "success",
+          body: {
+            message: "Please visit your email to active account!",
+          },
+          // user: passportUser,
+          // token: passportUser.generateJWT(passportUser.username),
         });
       }
       return next(new ErrorHandler(400, info.message));
@@ -63,20 +71,23 @@ exports.facebookSignIn = (req, res, next) => {
 
 exports.getUserFromToken = async (req, res, next) => {
   return passport.authenticate(
-    'jwt',
+    "jwt",
     { session: false },
     (err, passportUser, info) => {
       if (err) {
         return next(new ErrorHandler(400, err));
       }
       if (passportUser) {
-        return res.status(200).json(
-         {
-           user: passportUser,
-         }
-        );
+        return res.status(200).json({
+          user: passportUser,
+        });
       }
-      return next(new ErrorHandler(400, 'Please check if your token is valid and provide a good one'));
+      return next(
+        new ErrorHandler(
+          400,
+          "Please check if your token is valid and provide a good one"
+        )
+      );
     }
   )(req, res, next);
 };
@@ -85,20 +96,69 @@ exports.getMe = async (req, res, next) => {
   res.status(200).json({ user: req.user });
 };
 
-exports.updateInfo = catchAsync( async (req, res, next) => {
+exports.updateInfo = catchAsync(async (req, res, next) => {
   const { email, fullName, phone } = req.body;
   const doc = await User.findByIdAndUpdate(
     { _id: user._id },
     { email, phone, fullName },
     { new: true, runValidators: true }
   );
-  if (!doc) return next(new ErrorHandler(404, 'No document found with that ID'));
+  if (!doc)
+    return next(new ErrorHandler(404, "No document found with that ID"));
   res.status(200).json({
     status: "success",
     user: doc,
   });
 });
 
+exports.activeAccount = catchAsync(async (req, res, next) => {
+  const token = req.params.token;
+  const decodedToken = verifyToken(token, process.env.JWT_SECRET);
+  console.log(decodedToken);
+  if (decodedToken) {
+    const username = decodedToken.username;
+    const doc = await User.findOneAndUpdate(
+      { username: username },
+      { active: true },
+      { new: true }
+    );
+    if (doc) {
+      res.redirect(
+        `${process.env.FRONT_END_URL_LOCAL}/active-email/?status=success?username=${username}`
+      );
+    } else {
+      next(new ErrorHandler(400, "Authentication failed!"));
+    }
+  } else {
+    res.redirect(
+      `${process.env.FRONT_END_URL_LOCAL}/active-email/?status=expired`
+    );
+  }
+});
+
+exports.resendActiveAccount = catchAsync(async (req, res, next) => {
+  const email = req.body.email;
+  console.log(email);
+  const doc = await User.findOne({ email: email, active: false });
+  if (doc) {
+    const token = doc.generateJWT(doc.username);
+    const url = `${process.env.SERVER_URL_LOCAL}/users/active-email/${token}`;
+    await new Email(doc, url).sendWelcome();
+    return res.status(200).json({
+      status: "success",
+      body: {
+        message: "Please visit your email to active account!",
+      },
+    });
+  } else {
+    res.status(201).json({
+      status: "fail",
+      body: {
+        message: `Can't find account with this email! Please try again!`,
+      },
+    });
+  }
+});
 
 exports.getUser = factoryController.getOne(User);
 exports.getAllUsers = factoryController.getAll(User);

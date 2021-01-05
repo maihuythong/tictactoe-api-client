@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt-nodejs');
-const jwt = require('jsonwebtoken');
-const jwt_secret = require('../config/config');
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt-nodejs");
+const jwt = require("jsonwebtoken");
+const jwt_secret = require("../config/config");
 
 let user = mongoose.Schema({
   username: {
@@ -12,12 +12,12 @@ let user = mongoose.Schema({
   },
   email: {
     type: String,
-    // required: true
+    required: true
   },
   fullName: {
     type: String,
     required: true,
-    default: 'No Name'
+    default: "No Name",
   },
   password: {
     type: String,
@@ -28,7 +28,7 @@ let user = mongoose.Schema({
   role: {
     type: String,
     required: true,
-    default: 'GUEST',
+    default: "GUEST",
   },
   createdAt: {
     type: Date,
@@ -57,25 +57,30 @@ let user = mongoose.Schema({
     email: String,
     name: String,
   },
-  status:{
+  status: {
     type: String,
     required: true,
-    default: 'offline'
+    default: "offline",
+  },
+  active: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
   win: {
     type: Number,
     default: 0,
-    required: true
+    required: true,
   },
   lose: {
     type: Number,
     default: 0,
-    required: true
+    required: true,
   },
   draw: {
     type: Number,
     default: 0,
-    required: true
+    required: true,
   },
 });
 
@@ -101,4 +106,4 @@ user.methods.validPassword = function (password) {
   return bcrypt.compareSync(password, this.password);
 };
 
-module.exports = mongoose.model('User', user);
+module.exports = mongoose.model("User", user);

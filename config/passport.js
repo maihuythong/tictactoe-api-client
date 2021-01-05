@@ -41,6 +41,8 @@ module.exports = (passport) => {
               newUser.username = username;
               newUser.password = newUser.generateHash(password);
               newUser.fullName = req.body.fullName;
+              newUser.email = req.body.email;
+              newUser.active = false;
               newUser.save((err) => {
                 if (err) throw err;
                 return done(null, newUser);

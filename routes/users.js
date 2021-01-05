@@ -7,6 +7,8 @@ const auth = require('../middlewares/auth');
 
 router.post('/sign-up', usersController.signup);
 router.post('/sign-in', usersController.signin);
+router.get('/active-email/:token', usersController.activeAccount);
+router.post('/resend-active-email', usersController.resendActiveAccount);
 
 router.get('/auth/google', usersController.googleSignIn);
 router.get(
