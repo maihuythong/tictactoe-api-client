@@ -1,11 +1,11 @@
-const LocalStrategy = require('passport-local').Strategy;
-const JwtStrategy = require('passport-jwt').Strategy,
-  jwt_secret = require('./config');
-const User = require('../models/user');
-const FacebookStrategy = require('passport-facebook').Strategy;
-const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+const LocalStrategy = require("passport-local").Strategy;
+const JwtStrategy = require("passport-jwt").Strategy,
+  jwt_secret = require("./config");
+const User = require("../models/user");
+const FacebookStrategy = require("passport-facebook").Strategy;
+const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
 
-ExtractJwt = require('passport-jwt').ExtractJwt;
+ExtractJwt = require("passport-jwt").ExtractJwt;
 
 module.exports = (passport) => {
   passport.serializeUser((user, done) => {
@@ -19,11 +19,11 @@ module.exports = (passport) => {
   });
 
   passport.use(
-    'local-signup',
+    "local-signup",
     new LocalStrategy(
       {
-        usernameField: 'username',
-        passwordField: 'password',
+        usernameField: "username",
+        passwordField: "password",
         passReqToCallback: true,
       },
       (req, username, password, done) => {
@@ -33,7 +33,7 @@ module.exports = (passport) => {
 
             if (user) {
               return done(null, false, {
-                message: 'That username is already taken.',
+                message: "That username is already taken.",
               });
             } else {
               let newUser = new User();
@@ -55,11 +55,11 @@ module.exports = (passport) => {
   );
 
   passport.use(
-    'local-signin',
+    "local-signin",
     new LocalStrategy(
       {
-        usernameField: 'username',
-        passwordField: 'password',
+        usernameField: "username",
+        passwordField: "password",
         passReqToCallback: true,
       },
       (req, username, password, done) => {
@@ -67,10 +67,14 @@ module.exports = (passport) => {
           if (err) return done(err);
 
           if (!user)
-            return done(null, false, { message: 'Incorrect username.' });
+            return done(null, false, { message: "Incorrect username." });
 
           if (!user.validPassword(password))
-            return done(null, false, { message: 'Incorrect password.' });
+            return done(null, false, { message: "Incorrect password." });
+          if (!user.active)
+            return done(null, false, {
+              message: "Please active your email before",
+            });
 
           return done(null, user);
         });
@@ -80,7 +84,7 @@ module.exports = (passport) => {
 
   // Passport JWT Strategy
   passport.use(
-    'jwt-auth',
+    "jwt-auth",
     new JwtStrategy(
       {
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -92,11 +96,11 @@ module.exports = (passport) => {
 
           if (user) {
             return done(null, user, {
-              message: 'A user was found thanks to the jwt token',
+              message: "A user was found thanks to the jwt token",
             });
           } else {
             return done(null, false, {
-              message: 'No user was found thanks to the jwt token',
+              message: "No user was found thanks to the jwt token",
             });
           }
         });
@@ -113,10 +117,9 @@ module.exports = (passport) => {
         callbackURL: process.env.FACEBOOK_CALLBACK_URL,
         // callbackURL:
         //   'http://localhost:8080/api/v1/users/auth/facebook/callback',
-        profileFields: ['id', 'emails', 'name'],
+        profileFields: ["id", "emails", "name"],
       },
       (token, refreshToken, profile, done) => {
-
         process.nextTick(() => {
           User.findOne({ facebookId: profile.id }, (err, user) => {
             if (err) return done(err);
@@ -128,9 +131,9 @@ module.exports = (passport) => {
               newUser.facebookId = profile.id;
               newUser.facebook.token = token;
               newUser.facebook.name =
-                profile.name.givenName + ' ' + profile.name.familyName;
+                profile.name.givenName + " " + profile.name.familyName;
               newUser.fullName =
-                profile.name.givenName + ' ' + profile.name.familyName;
+                profile.name.givenName + " " + profile.name.familyName;
               // newUser.facebook.email = profile.emails[0].value;
 
               newUser.save((err) => {

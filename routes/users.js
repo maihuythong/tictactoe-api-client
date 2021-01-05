@@ -9,6 +9,8 @@ router.post('/sign-up', usersController.signup);
 router.post('/sign-in', usersController.signin);
 router.get('/active-email/:token', usersController.activeAccount);
 router.post('/resend-active-email', usersController.resendActiveAccount);
+router.post('/forgot-password', usersController.forgotPassword);
+router.post('/reset-password/:token', usersController.resetPassword);
 
 router.get('/auth/google', usersController.googleSignIn);
 router.get(

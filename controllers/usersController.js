@@ -3,7 +3,7 @@ const passport = require("passport");
 const { ErrorHandler } = require("../helpers/errorHandler");
 const factoryController = require("./factoryController");
 const catchAsync = require("../helpers/catchAsync");
-const { signUpValidation, signInValidation } = require("../helpers/validation");
+const { signUpValidation, signInValidation, passwordValidation, emailValidation } = require("../helpers/validation");
 const Email = require("./../helpers/email");
 const { verifyToken } = require("../helpers/tokenUtils");
 
@@ -124,7 +124,7 @@ exports.activeAccount = catchAsync(async (req, res, next) => {
     );
     if (doc) {
       res.redirect(
-        `${process.env.FRONT_END_URL_LOCAL}/active-email/?status=success?username=${username}`
+        `${process.env.FRONT_END_URL_LOCAL}/active-email/?status=success&username=${username}`
       );
     } else {
       next(new ErrorHandler(400, "Authentication failed!"));
@@ -138,7 +138,6 @@ exports.activeAccount = catchAsync(async (req, res, next) => {
 
 exports.resendActiveAccount = catchAsync(async (req, res, next) => {
   const email = req.body.email;
-  console.log(email);
   const doc = await User.findOne({ email: email, active: false });
   if (doc) {
     const token = doc.generateJWT(doc.username);
@@ -151,12 +150,59 @@ exports.resendActiveAccount = catchAsync(async (req, res, next) => {
       },
     });
   } else {
-    res.status(201).json({
-      status: "fail",
+    next(new ErrorHandler(400, "Can't find account with this email! Please try again!"));
+  }
+});
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  const { error } = await emailValidation(req.body);
+  if (error) return next(new ErrorHandler(400, error));
+  const email = req.body.email;
+  const doc = await User.findOne({ email: email, active: true });
+  if (doc) {
+    const token = doc.generateJWT(doc.username);
+    const url = `${process.env.FRONT_END_URL_LOCAL}/reset-password/?token=${token}`;
+    await new Email(doc, url).sendPasswordReset();
+    return res.status(200).json({
+      status: "success",
       body: {
-        message: `Can't find account with this email! Please try again!`,
+        message: "Please visit your email to active account!",
       },
     });
+  } else {
+    next(new ErrorHandler(400, "Can't find account with this email! Please try again!"));
+  }
+});
+
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  const { error } = await passwordValidation(req.body);
+  if (error) return next(new ErrorHandler(400, error));
+  const token = req.params.token;
+  const password = req.body.password;
+  const decodedToken = verifyToken(token);
+  if(!decodedToken){
+    return next(new ErrorHandler(400, "Invalid token"));
+  }
+  console.log(decodedToken);
+  const doc = await User.findOne({ username: decodedToken.username, active: true });
+  if (doc) {
+    const newUser = new User();
+    const newPassword = newUser.generateHash(password);
+    console.log(newPassword);
+    const docRes = await User.findOneAndUpdate({username: doc.username},{ password: newPassword}, {new: true});
+    console.log(docRes.password);
+    if(docRes) {
+      return res.status(200).json({
+        status: "success",
+        body: {
+          message: "Update password success!",
+        },
+      });
+    }else{
+      next(new ErrorHandler(400, "Can't update password! Please try again!"))
+    }
+  } else {
+    next(new ErrorHandler(400, "Can't find account with this email! Please try again!"));
   }
 });
 

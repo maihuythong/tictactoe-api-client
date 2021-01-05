@@ -87,7 +87,7 @@ let user = mongoose.Schema({
 user.methods.generateJWT = (username) => {
   const today = new Date();
   const expirationDate = new Date(today);
-  expirationDate.setMinutes(today.getMinutes() + 3600);
+  expirationDate.setMinutes(today.getMinutes() + 0);
 
   return jwt.sign(
     {

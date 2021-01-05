@@ -23,7 +23,7 @@ module.exports = class Email {
   async send(template, subject) {
     // render email with html pug template
     const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
-      firstName: this.firstName,
+      fullName: this.fullName,
       url: this.url,
       subject,
     });
@@ -43,4 +43,10 @@ module.exports = class Email {
     await this.send("active", "Welcome to the Tic tac toe online!");
   }
 
+  async sendPasswordReset() {
+    await this.send(
+      "passwordReset",
+      "Your password reset token (valid for only 1 day)"
+    );
+  }
 };
