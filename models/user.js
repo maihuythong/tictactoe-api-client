@@ -12,6 +12,7 @@ let user = mongoose.Schema({
   },
   email: {
     type: String,
+    unique: true,
     required: true
   },
   fullName: {
@@ -87,7 +88,7 @@ let user = mongoose.Schema({
 user.methods.generateJWT = (username) => {
   const today = new Date();
   const expirationDate = new Date(today);
-  expirationDate.setMinutes(today.getMinutes() + 0);
+  expirationDate.setMinutes(today.getMinutes() + 3600);
 
   return jwt.sign(
     {

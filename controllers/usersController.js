@@ -113,8 +113,7 @@ exports.updateInfo = catchAsync(async (req, res, next) => {
 
 exports.activeAccount = catchAsync(async (req, res, next) => {
   const token = req.params.token;
-  const decodedToken = verifyToken(token, process.env.JWT_SECRET);
-  console.log(decodedToken);
+  const decodedToken = verifyToken(token);
   if (decodedToken) {
     const username = decodedToken.username;
     const doc = await User.findOneAndUpdate(

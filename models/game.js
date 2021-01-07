@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const AutoIncrement = require("mongoose-sequence")(mongoose);
 const { ErrorHandler } = require("../helpers/errorHandler");
+const bcrypt = require("bcrypt-nodejs");
 
 const GameSchema = new mongoose.Schema({
   gameId: {
@@ -11,7 +12,10 @@ const GameSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    default: 'Caro VN',
+    default: "Caro VN",
+  },
+  password: {
+    type: String,
   },
   status: {
     type: String,
@@ -47,6 +51,19 @@ const GameSchema = new mongoose.Schema({
 });
 
 GameSchema.plugin(AutoIncrement, { inc_field: "gameId" });
+GameSchema.pre("save", async function (next) {
+  // Hash the password with cost of 12
+  if (this.password)
+    this.password = await bcrypt.hashSync(
+      this.password,
+      bcrypt.genSaltSync(12),
+      null
+    );
+  next();
+});
+GameSchema.methods.validPassword = function (password) {
+  return bcrypt.compareSync(password, this.password);
+};
 
 const Game = mongoose.model("Games", GameSchema);
 

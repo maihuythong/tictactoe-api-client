@@ -15,6 +15,12 @@ exports.joinGame = catchAsync (async (req, res, next) => {
   const gameId  = req.params.id;
   const game = await Game.findOne({ gameId: gameId, status: "playing" });
   if (game) {
+    if(game.password){
+      if (!req.body.password) return next(new ErrorHandler(400, "Require password!"));
+      const checkPassword = await game.validPassword(req.body.password);
+      if(!checkPassword)
+        return next(new ErrorHandler(400, "Incorrect password!"));
+    }
     if (!game.guest) {
       const doc = await Game.findOneAndUpdate(
         { gameId: gameId },
