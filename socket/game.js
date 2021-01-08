@@ -10,7 +10,7 @@ const game = (io, socket) => {
       message: `Created game ${data.gameId}`,
       gameId: data.gameId,
     });
-    const games = await Game.find({ status: "playing" });
+    const games = await Game.find({ status: ["waiting player", "playing"] });
     socket.broadcast.emit("newGameCreated", games);
   }));
 

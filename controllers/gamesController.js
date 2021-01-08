@@ -13,7 +13,7 @@ exports.getOneGame = factoryController.getOne(Game);
 exports.joinGame = catchAsync (async (req, res, next) => {
   const userId = req.user._id;
   const gameId  = req.params.id;
-  const game = await Game.findOne({ gameId: gameId, status: "playing" });
+  const game = await Game.findOne({ gameId: gameId, status: "waiting player" });
   if (game) {
     if(game.password){
       if (!req.body.password) return next(new ErrorHandler(400, "Require password!"));
@@ -24,7 +24,7 @@ exports.joinGame = catchAsync (async (req, res, next) => {
     if (!game.guest) {
       const doc = await Game.findOneAndUpdate(
         { gameId: gameId },
-        { guest: userId },
+        { guest: userId , status: "playing"},
         { new: true }
       );
       if (doc) {

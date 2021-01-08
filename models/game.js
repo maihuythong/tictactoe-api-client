@@ -20,8 +20,8 @@ const GameSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ["playing", "completed"],
-    default: "playing",
+    enum: ["waiting player", "playing", "completed"],
+    default: "waiting player",
   },
   host: {
     type: mongoose.ObjectId,
