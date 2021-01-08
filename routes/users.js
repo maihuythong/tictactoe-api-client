@@ -15,7 +15,7 @@ router.post('/reset-password/:token', usersController.resetPassword);
 router.get('/auth/google', usersController.googleSignIn);
 router.get(
   '/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login' }),
+  passport.authenticate('google', { failureRedirect: process.env.FRONT_END_URL + '/login', }),
   function (req, res) {
     let token = req.user.generateJWT(req.user.username);
     res.redirect(process.env.FRONT_END_URL + '/login?token=' + token);

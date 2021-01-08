@@ -13,13 +13,14 @@ const authentication = (io, socket) => {
       const doc = await setStatus(id, "online");
       if (doc) {
         const listUsers = await User.find({ status: "online" });
-        const listGames = await Game.find({ status: "playing" });
+        const listGames = await Game.find({ status: ["waiting player", "playing"] });
         io.emit("list", {listUsers: listUsers, listGames: listGames});
       }
     }
   }));
 
   socket.on("logout", catchAsyncSocket( async (data) => {
+    console.log("logout");
     const decodedToken = await verifyToken(data.token);
     // handle case facebook, google (not username) ...
     const id = await (await User.findOne({ username: decodedToken.username }))
@@ -38,6 +39,7 @@ module.exports = authentication;
 
 
 const setStatus = async (id, status) => {
+  console.log("logout user");
   return await User.findOneAndUpdate(
     { _id: id },
     { status: status },

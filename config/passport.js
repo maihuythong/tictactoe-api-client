@@ -44,7 +44,19 @@ module.exports = (passport) => {
               newUser.email = req.body.email;
               newUser.active = false;
               newUser.save((err) => {
-                if (err) throw err;
+                if (err) {
+                  if (err.name === "MongoError" && err.code === 11000) {
+                    if (err.keyValue.email != null)
+                      return done(null, false, {
+                        message: "That email is already taken.",
+                      });
+                   
+                  } else {
+                    return done(null, false, {
+                      message: err,
+                    });
+                  }
+                }
                 return done(null, newUser);
               });
             }
@@ -68,6 +80,11 @@ module.exports = (passport) => {
 
           if (!user)
             return done(null, false, { message: "Incorrect username." });
+          if (user.status === "online")
+            return done(null, false, {
+              message:
+                "This User is already logged in. Please use another login name!",
+            });
 
           if (!user.validPassword(password))
             return done(null, false, { message: "Incorrect password." });
@@ -124,6 +141,11 @@ module.exports = (passport) => {
           User.findOne({ facebookId: profile.id }, (err, user) => {
             if (err) return done(err);
             if (user) {
+              if (user.status === "online")
+                return done(null, false, {
+                  message:
+                    "This User is already logged in. Please use another login name!",
+                });
               return done(null, user);
             } else {
               let newUser = new User();
@@ -134,10 +156,15 @@ module.exports = (passport) => {
                 profile.name.givenName + " " + profile.name.familyName;
               newUser.fullName =
                 profile.name.givenName + " " + profile.name.familyName;
+              newUser.email = profile.id;
               // newUser.facebook.email = profile.emails[0].value;
-
               newUser.save((err) => {
-                if (err) throw err;
+                if (err) {
+                  console.log(err);
+                  return done(null, false, {
+                    message: err,
+                  });
+                }
                 return done(null, newUser);
               });
             }
@@ -160,6 +187,11 @@ module.exports = (passport) => {
             if (err) return done(err);
 
             if (user) {
+              if (user.status === "online")
+                return done(null, false, {
+                  message:
+                    "This User is already logged in. Please use another login name!",
+                });
               return done(null, user);
             } else {
               let newUser = new User();
@@ -168,9 +200,15 @@ module.exports = (passport) => {
               newUser.google.name = profile.displayName;
               newUser.google.email = profile.emails[0].value;
               newUser.fullName = profile.displayName;
+              newUser.email = profile.id;
 
               newUser.save((err) => {
-                if (err) throw err;
+                if (err) {
+                  console.log(err);
+                  return done(null, false, {
+                    message: err,
+                  });
+                }
                 return done(null, newUser);
               });
             }
