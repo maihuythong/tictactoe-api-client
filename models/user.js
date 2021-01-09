@@ -96,7 +96,7 @@ let user = mongoose.Schema({
 user.pre("findOneAndUpdate", async function (next) {
   const res = this.win - this.lose;
   this.cup = res > 0 ? res : 0;
-  this.winRatio = (win / (lose > 0 ? lose : 1)) * 100;
+  this.winRatio = (this.win / (this.lose > 0 ? this.lose : 1)) * 100;
 
   next();
 });
