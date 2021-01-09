@@ -13,7 +13,7 @@ let user = mongoose.Schema({
   email: {
     type: String,
     unique: true,
-    required: true
+    required: true,
   },
   fullName: {
     type: String,
@@ -83,6 +83,22 @@ let user = mongoose.Schema({
     default: 0,
     required: true,
   },
+  cup: {
+    type: Number,
+    default: 0,
+  },
+  winRatio: {
+    type: Number,
+    default: 0,
+  },
+});
+
+user.pre("findOneAndUpdate", async function (next) {
+  const res = this.win - this.lose;
+  this.cup = res > 0 ? res : 0;
+  this.winRatio = (win / (lose > 0 ? lose : 1)) * 100;
+
+  next();
 });
 
 user.methods.generateJWT = (username) => {

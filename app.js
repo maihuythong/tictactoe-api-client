@@ -23,7 +23,7 @@ require('./socket/sockets.js')(io);
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
-const gamesRouter = require('./routes/games');
+const roomsRouter = require('./routes/rooms');
 const { ErrorHandler } = require('./helpers/errorHandler');
 const auth = require('./middlewares/auth');
 
@@ -57,7 +57,7 @@ app.use(cors());
 
 app.use('/', indexRouter);
 app.use('/api/v1/users', usersRouter);
-app.use('/api/v1/games', auth, gamesRouter);
+app.use('/api/v1/rooms', auth, roomsRouter);
 
 
 // error handler

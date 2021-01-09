@@ -1,10 +1,9 @@
 const mongoose = require("mongoose");
 const AutoIncrement = require("mongoose-sequence")(mongoose);
-const { ErrorHandler } = require("../helpers/errorHandler");
 const bcrypt = require("bcrypt-nodejs");
 
-const GameSchema = new mongoose.Schema({
-  gameId: {
+const RoomSchema = new mongoose.Schema({
+  roomId: {
     type: Number,
     default: 0,
     required: true,
@@ -23,35 +22,18 @@ const GameSchema = new mongoose.Schema({
     enum: ["waiting player", "playing", "completed"],
     default: "waiting player",
   },
-  host: {
+  creator: {
     type: mongoose.ObjectId,
     required: true,
     ref: "User",
   },
-  guest: {
-    ref: "User",
-    type: mongoose.ObjectId,
-  },
-  winner: {
-    ref: "User",
-    type: mongoose.ObjectId,
-  },
-  loser: {
-    ref: "User",
-    type: mongoose.ObjectId,
-  },
-  history: {
+  viewers: {
     type: Array,
-    default: [],
-  },
-  winnerLine: {
-    type: Array,
-    default: [],
-  },
+  }
 });
 
-GameSchema.plugin(AutoIncrement, { inc_field: "gameId" });
-GameSchema.pre("save", async function (next) {
+RoomSchema.plugin(AutoIncrement, { inc_field: "roomId" });
+RoomSchema.pre("save", async function (next) {
   // Hash the password with cost of 12
   if (this.password)
     this.password = await bcrypt.hashSync(
@@ -61,10 +43,10 @@ GameSchema.pre("save", async function (next) {
     );
   next();
 });
-GameSchema.methods.validPassword = function (password) {
+RoomSchema.methods.validPassword = function (password) {
   return bcrypt.compareSync(password, this.password);
 };
 
-const Game = mongoose.model("Games", GameSchema);
+const Room = mongoose.model("Rooms", RoomSchema);
 
-module.exports = Game;
+module.exports = Room;

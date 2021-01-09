@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
 const MatchSchema = new mongoose.Schema({
-    gameId: {
+    roomId: {
         type: Number,
-        ref: "Game",
+        ref: "Room",
         required: true,
         unique: true,
     },
@@ -15,7 +15,7 @@ const MatchSchema = new mongoose.Schema({
         type: Array,
         default: [],
     },
-    histories: {
+    history: {
         type: Array,
         default: [],
     },
@@ -27,6 +27,9 @@ const MatchSchema = new mongoose.Schema({
         ref: "User",
         type: mongoose.ObjectId,
     },
+    isDraw: {
+        type: mongoose.Boolean,
+    }
 });
 
 const Match = mongoose.model("Matches", MatchSchema);

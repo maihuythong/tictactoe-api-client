@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const Game = require('../models/game');
+const Room = require('../models/room');
 const {verifyToken} = require('../helpers/tokenUtils');
 const catchAsyncSocket = require('../helpers/catchAsyncSocket');
 
@@ -13,8 +13,8 @@ const authentication = (io, socket) => {
       const doc = await setStatus(id, "online");
       if (doc) {
         const listUsers = await User.find({ status: "online" });
-        const listGames = await Game.find({ status: ["waiting player", "playing"] });
-        io.emit("list", {listUsers: listUsers, listGames: listGames});
+        const listRooms = await Room.find({ status: ["waiting player", "playing"] });
+        io.emit("list", {listUsers: listUsers, listRooms: listRooms});
       }
     }
   }));
@@ -39,7 +39,6 @@ module.exports = authentication;
 
 
 const setStatus = async (id, status) => {
-  console.log("logout user");
   return await User.findOneAndUpdate(
     { _id: id },
     { status: status },
