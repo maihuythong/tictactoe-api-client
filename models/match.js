@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const MatchSchema = new mongoose.Schema({
     roomId: {
-        type: Number,
+        type: mongoose.ObjectId,
         ref: "Room",
         required: true,
         unique: true,
@@ -28,7 +28,8 @@ const MatchSchema = new mongoose.Schema({
         type: mongoose.ObjectId,
     },
     isDraw: {
-        type: mongoose.Boolean,
+        type: Boolean,
+        default: false,
     }
 });
 

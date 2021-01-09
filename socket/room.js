@@ -2,14 +2,21 @@ const Room = require("../models/room");
 const User = require("../models/user");
 const catchAsyncSocket = require("../helpers/catchAsyncSocket");
 const { verifyToken } = require("../helpers/tokenUtils");
-let roomMap = {};
-
-const room = (io, socket) => {
+const room = (io, socket, roomMap) => {
   socket.on(
     "createNewRoom",
     catchAsyncSocket(async (data) => {
       const rooms = await Room.find({ status: ["waiting player", "playing"] });
-      socket.broadcast.emit("newRoomCreated", rooms);
+      const roomId = data.roomId.toString();
+      const newRoom = {
+        viewers: [],
+        player1Status: false,
+        player2Status: false,
+        currentBoard: [],
+        currentMatch: data.matchId,
+      }
+      roomMap[roomId] = newRoom;
+      io.emit("newRoomCreated", rooms);
     })
   );
 
@@ -17,17 +24,14 @@ const room = (io, socket) => {
   socket.on(
     "joinRoom",
     catchAsyncSocket(async (data) => {
+      console.log(roomMap);
       const roomId = data?.roomId.toString();
       const decodedToken = await verifyToken(data.token);
       if (decodedToken) {
         const user = await User.findOne({ username: decodedToken.username });
         socket.join(roomId);
         roomMap[roomId].viewers.push(user);
-        roomMap[roomId].player1Status = false;
-        roomMap[roomId].player2Status = false;
-        roomMap[roomId].currentBoard = [];
-        roomMap[roomId].currentMatch = data.matchId;
-        socket.to(roomId).emit("viewerTrigger", roomMap[roomId].viewers);
+        io.in(roomId).emit("viewerTrigger", roomMap[roomId].viewers);
       }
     })
   );
@@ -42,7 +46,7 @@ const room = (io, socket) => {
         roomMap[roomId].viewers = roomMap[roomId].viewers.filter(
           (viewer) => viewer.username !== decodedToken.username
         );
-        socket.to(roomId).emit("viewerTrigger", roomMap[roomId].viewers);
+        io.in(roomId).emit("viewerTrigger", roomMap[roomId].viewers);
         socket.leave(roomId);
       }
     })
@@ -65,6 +69,11 @@ const room = (io, socket) => {
             roomMap[roomId].player2 = user;
           }
         }
+        console.log(roomMap);
+        io.in(roomId).emit("playerPickChair", {
+          player1: roomMap[roomId].player1,
+          player2: roomMap[roomId].player2,
+        });
       }
     })
   );
@@ -82,7 +91,7 @@ const room = (io, socket) => {
         if (roomMap[roomId]?.player2?.username === decodedToken.username) {
           roomMap[roomId].player2 = null;
         }
-        socket.to(roomId).emit("playerLeaveChair", {
+        io.in(roomId).emit("playerLeaveChair", {
           player1: roomMap[roomId].player1,
           player2: roomMap[roomId].player2,
         });
@@ -104,7 +113,7 @@ const room = (io, socket) => {
           roomMap[roomId].player2Status = !roomMap[roomId].player2Status;
         }
 
-        socket.to(roomId).emit("playerStatusChange", {
+        io.in(roomId).emit("playerStatusChange", {
           player1Status: roomMap[roomId].player1Status,
           player2Status: roomMap[roomId].player2Status,
         });
@@ -207,4 +216,4 @@ const room = (io, socket) => {
   );
 };
 
-module.exports = { room, roomMap };
+module.exports = { room };

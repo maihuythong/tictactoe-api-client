@@ -19,11 +19,13 @@ const io = require('socket.io')(server, {
     origin: '*',
   }
 });
-require('./socket/sockets.js')(io);
+let roomMap={}
+require('./socket/sockets.js')(io,roomMap);
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const roomsRouter = require('./routes/rooms');
+const matchesRouter = require('./routes/matches');
 const { ErrorHandler } = require('./helpers/errorHandler');
 const auth = require('./middlewares/auth');
 
@@ -58,6 +60,7 @@ app.use(cors());
 app.use('/', indexRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/rooms', auth, roomsRouter);
+app.use('/api/v1/matches', auth, matchesRouter);
 
 
 // error handler
