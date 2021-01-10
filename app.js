@@ -9,7 +9,7 @@ const globalErrorHandler = require('./controllers/errorsController');
 require('dotenv').config();
 
 const dbConnector = require('./database/dbConnector');
-const checkAuth = require('./middlewares/check-auth');
+
 
 const cors = require('cors');
 const app = express();
@@ -19,8 +19,8 @@ const io = require('socket.io')(server, {
     origin: '*',
   }
 });
-let roomMap={}
-require('./socket/sockets.js')(io,roomMap);
+
+require('./socket/sockets.js')(io);
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
@@ -37,16 +37,16 @@ dbConnector();
 
 require('./config/passport')(passport);
 // Passport init
+app.use(passport.initialize());
 app.use(
   session({
     secret: 'passport-js',
     cookie: { maxAge: 60000 },
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
   })
 );
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.session());
 
 app.use(logger('dev'));
 app.use(express.json());

@@ -2,7 +2,8 @@ const Room = require("../models/room");
 const User = require("../models/user");
 const catchAsyncSocket = require("../helpers/catchAsyncSocket");
 const { verifyToken } = require("../helpers/tokenUtils");
-const room = (io, socket, roomMap) => {
+const roomMap = require('../database/roomMap');
+const room = (io, socket) => {
   socket.on(
     "createNewRoom",
     catchAsyncSocket(async (data) => {
@@ -12,6 +13,8 @@ const room = (io, socket, roomMap) => {
         viewers: [],
         player1Status: false,
         player2Status: false,
+        player1: null,
+        player2: null,
         currentBoard: [],
         currentMatch: data.matchId,
       }
@@ -24,7 +27,6 @@ const room = (io, socket, roomMap) => {
   socket.on(
     "joinRoom",
     catchAsyncSocket(async (data) => {
-      console.log(roomMap);
       const roomId = data?.roomId.toString();
       const decodedToken = await verifyToken(data.token);
       if (decodedToken) {
@@ -69,7 +71,6 @@ const room = (io, socket, roomMap) => {
             roomMap[roomId].player2 = user;
           }
         }
-        console.log(roomMap);
         io.in(roomId).emit("playerPickChair", {
           player1: roomMap[roomId].player1,
           player2: roomMap[roomId].player2,
@@ -91,7 +92,7 @@ const room = (io, socket, roomMap) => {
         if (roomMap[roomId]?.player2?.username === decodedToken.username) {
           roomMap[roomId].player2 = null;
         }
-        io.in(roomId).emit("playerLeaveChair", {
+        io.in(roomId).emit("playerPickChair", {
           player1: roomMap[roomId].player1,
           player2: roomMap[roomId].player2,
         });
@@ -99,18 +100,19 @@ const room = (io, socket, roomMap) => {
     })
   );
 
-  // token, roomId,
+  // token, roomId, status,
   socket.on(
     "readyTrigger",
     catchAsyncSocket(async (data) => {
       const roomId = data.roomId;
       const decodedToken = await verifyToken(data.token);
       if (decodedToken) {
-        if (roomMap[roomId]?.player1 === decodedToken.username) {
-          roomMap[roomId].player1Status = !roomMap[roomId].player1Status;
+        if (roomMap[roomId].player1?.username === decodedToken.username) {
+          roomMap[roomId].player1Status = data.status;
+          console.log(roomMap[roomId].player1Status)
         }
-        if (roomMap[roomId]?.player2 === decodedToken.username) {
-          roomMap[roomId].player2Status = !roomMap[roomId].player2Status;
+        if (roomMap[roomId]?.player2?.username === decodedToken.username) {
+          roomMap[roomId].player2Status = data.status;
         }
 
         io.in(roomId).emit("playerStatusChange", {

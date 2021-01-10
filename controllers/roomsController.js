@@ -2,8 +2,8 @@ const Room = require("../models/room");
 const { ErrorHandler } = require("../helpers/errorHandler");
 const catchAsync = require("../helpers/catchAsync");
 const factoryController = require("./factoryController");
-const { roomMap } = require("../socket/room");
-
+const Match = require("../models/match");
+const roomMap  = require('../database/roomMap');
 exports.createNewRoom = factoryController.createOne(Room);
 exports.deleteRoom = factoryController.deleteOne(Room);
 exports.updateRoom = factoryController.updateOne(Room);
@@ -11,7 +11,6 @@ exports.getRooms = factoryController.getAll(Room);
 exports.getOneRoom = factoryController.getOne(Room);
 
 exports.joinRoom = catchAsync(async (req, res, next) => {
-  console.log(roomMap);
   const roomId = req.params.id;
   const room = await Room.findOne({ roomId: roomId });
   if (room) {
@@ -41,9 +40,18 @@ exports.joinRoom = catchAsync(async (req, res, next) => {
 });
 
 exports.getRoomInfo = catchAsync(async (req, res, next) => {
+  
   const roomId = req.params.id;
   const matches = await Match.find({ roomId: roomId });
-  res
-    .status(200)
-    .json({ status: "success", body: { roomInfo: roomMap, matches } });
+  console.log(matches);
+  if(roomMap[roomId]!==undefined){
+    res
+      .status(200)
+      .json({ status: "success", body: { roomInfo: roomMap[roomId], matches: matches } });
+  }else {
+    next(
+      new ErrorHandler(400, "Cant find roomId in maps socket!")
+    );
+  }
+
 });

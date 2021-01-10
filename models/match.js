@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const MatchSchema = new mongoose.Schema({
     roomId: {
-        type: mongoose.ObjectId,
+        type: Number,
         ref: "Room",
         required: true,
         unique: true,
