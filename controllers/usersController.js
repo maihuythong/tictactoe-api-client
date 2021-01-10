@@ -182,14 +182,11 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   if(!decodedToken){
     return next(new ErrorHandler(400, "Invalid token"));
   }
-  console.log(decodedToken);
   const doc = await User.findOne({ username: decodedToken.username, active: true });
   if (doc) {
     const newUser = new User();
     const newPassword = newUser.generateHash(password);
-    console.log(newPassword);
     const docRes = await User.findOneAndUpdate({username: doc.username},{ password: newPassword}, {new: true});
-    console.log(docRes.password);
     if(docRes) {
       return res.status(200).json({
         status: "success",

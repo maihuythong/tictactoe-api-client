@@ -5,9 +5,8 @@ const MatchSchema = new mongoose.Schema({
         type: Number,
         ref: "Room",
         required: true,
-        unique: true,
     },
-    winnerLine: {
+    winLine: {
         type: Array,
         default: [],
     },

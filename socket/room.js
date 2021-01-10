@@ -1,4 +1,5 @@
 const Room = require("../models/room");
+const Match = require("../models/match");
 const User = require("../models/user");
 const catchAsyncSocket = require("../helpers/catchAsyncSocket");
 const { verifyToken } = require("../helpers/tokenUtils");
@@ -92,6 +93,9 @@ const room = (io, socket) => {
         if (roomMap[roomId]?.player2?.username === decodedToken.username) {
           roomMap[roomId].player2 = null;
         }
+
+        
+
         io.in(roomId).emit("playerPickChair", {
           player1: roomMap[roomId].player1,
           player2: roomMap[roomId].player2,
@@ -109,7 +113,6 @@ const room = (io, socket) => {
       if (decodedToken) {
         if (roomMap[roomId].player1?.username === decodedToken.username) {
           roomMap[roomId].player1Status = data.status;
-          console.log(roomMap[roomId].player1Status)
         }
         if (roomMap[roomId]?.player2?.username === decodedToken.username) {
           roomMap[roomId].player2Status = data.status;
@@ -146,27 +149,39 @@ const room = (io, socket) => {
     "finishGame",
     catchAsyncSocket(async (data) => {
       const roomId = data.roomId;
-
-      const doc = Match.findOneAndUpdate(
+      const doc = await Match.findOneAndUpdate(
         { _id: roomMap[roomId].currentMatch },
         {
-          roomId: data.roomId,
           winner: data.winner,
           loser: data.loser,
-          history: roomMap.currentBoard,
+          history: roomMap[roomId].currentBoard,
           messages: data.messages,
           isDraw: data.isDraw,
+          winLine: data.winLine
         },
         { new: true }
       );
 
       if (doc) {
-        socket.to(roomId).emit("gameFinished", {
+        io.in(roomId).emit("gameFinished", {
           isDraw: data.isDraw,
           winner: data?.winner ?? null,
           loser: data?.loser ?? null,
-          winnerLine: data?.winnerLine ?? null,
+          winLine: data?.winLine ?? null,
         });
+
+        roomMap[roomId].player1Status = false,
+        roomMap[roomId].player2Status = false,
+
+        io.in(roomId).emit("playerStatusChange", {
+          player1Status: roomMap[roomId].player1Status,
+          player2Status: roomMap[roomId].player2Status,
+        });
+
+        console.log('====================================');
+        console.log(roomId);
+        console.log(doc._id);
+        console.log('====================================');
 
         if (data.isDraw) {
           try {
@@ -203,7 +218,9 @@ const room = (io, socket) => {
         }
       }
 
-      const match = new Match();
+      const match = new Match({
+        roomId: roomId,
+      });
       match.save().then((err, res) => {
         if (err) {
           console.log(err);

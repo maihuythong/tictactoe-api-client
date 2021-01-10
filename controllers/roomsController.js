@@ -3,7 +3,7 @@ const { ErrorHandler } = require("../helpers/errorHandler");
 const catchAsync = require("../helpers/catchAsync");
 const factoryController = require("./factoryController");
 const Match = require("../models/match");
-const roomMap  = require('../database/roomMap');
+const roomMap = require("../database/roomMap");
 exports.createNewRoom = factoryController.createOne(Room);
 exports.deleteRoom = factoryController.deleteOne(Room);
 exports.updateRoom = factoryController.updateOne(Room);
@@ -26,9 +26,19 @@ exports.joinRoom = catchAsync(async (req, res, next) => {
       { $push: { viewers: req.user } }
     );
     if (updateRoom) {
-      res
-        .status(200)
-        .json({ status: "success", message: "Join room successfully!" });
+      const roomId = req.params.id;
+      const matches = await Match.find({ roomId: roomId });
+      if (roomMap[roomId] !== undefined) {
+        res
+          .status(200)
+          .json({
+            status: "success",
+            message: "Join room successfully!",
+            body: { roomInfo: roomMap[roomId], matches: matches },
+          });
+      } else {
+        next(new ErrorHandler(400, "Cant find roomId in maps socket!"));
+      }
     } else {
       return next(new ErrorHandler(400, "Can't join room!"));
     }
@@ -40,18 +50,16 @@ exports.joinRoom = catchAsync(async (req, res, next) => {
 });
 
 exports.getRoomInfo = catchAsync(async (req, res, next) => {
-  
   const roomId = req.params.id;
   const matches = await Match.find({ roomId: roomId });
-  console.log(matches);
-  if(roomMap[roomId]!==undefined){
+  if (roomMap[roomId] !== undefined) {
     res
       .status(200)
-      .json({ status: "success", body: { roomInfo: roomMap[roomId], matches: matches } });
-  }else {
-    next(
-      new ErrorHandler(400, "Cant find roomId in maps socket!")
-    );
+      .json({
+        status: "success",
+        body: { roomInfo: roomMap[roomId], matches: matches },
+      });
+  } else {
+    next(new ErrorHandler(400, "Cant find roomId in maps socket!"));
   }
-
 });

@@ -91,6 +91,10 @@ let user = mongoose.Schema({
     type: Number,
     default: 0,
   },
+  locked: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 user.pre("findOneAndUpdate", async function (next) {
