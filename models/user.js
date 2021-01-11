@@ -91,13 +91,13 @@ let user = mongoose.Schema({
     type: Number,
     default: 0,
   },
-  locked: {
+  blocked: {
     type: Boolean,
     default: false,
   }
 });
 
-user.pre("findOneAndUpdate", async function (next) {
+user.pre("save", async function (next) {
   const res = this.win - this.lose;
   this.cup = res > 0 ? res : 0;
   this.winRatio = (this.win / (this.lose > 0 ? this.lose : 1)) * 100;

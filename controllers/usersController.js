@@ -202,6 +202,21 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.getRanks = catchAsync(async (req, res, next) => {
+  
+  const doc = await User.find().sort({cup:-1}).limit(10);
+  if(doc) {
+    return res.status(200).json({
+      status: "success",
+      body:doc,
+    });
+  }else {
+    next(new ErrorHandler(400, "Can't get rank of users"));
+  }
+  
+    
+});
+
 exports.getUser = factoryController.getOne(User);
 exports.getAllUsers = factoryController.getAll(User);
 

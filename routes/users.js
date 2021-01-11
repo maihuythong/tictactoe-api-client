@@ -11,6 +11,7 @@ router.get('/active-email/:token', usersController.activeAccount);
 router.post('/resend-active-email', usersController.resendActiveAccount);
 router.post('/forgot-password', usersController.forgotPassword);
 router.post('/reset-password/:token', usersController.resetPassword);
+router.get('/ranks', usersController.getRanks);
 
 router.get('/auth/google', usersController.googleSignIn);
 router.get(

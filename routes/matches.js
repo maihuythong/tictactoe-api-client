@@ -7,5 +7,6 @@ router.get('/', matchesController.getMatches);
 router.get('/:id', matchesController.getOneMatch);
 router.put('/:id', matchesController.updateMatch);
 router.delete('/:id', matchesController.deleteMatch);
+router.get('/user/:id', matchesController.getAllMatchOfUser);
 
 module.exports = router;
