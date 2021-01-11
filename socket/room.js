@@ -126,6 +126,28 @@ const room = (io, socket) => {
     })
   );
 
+  socket.on(
+    "startNewMatch",
+    catchAsyncSocket(async (data) => {
+      const roomId = data.roomId
+      const match = new Match({
+        roomId: roomId,
+      });
+      match.save().then((res) => {
+        console.log("start new match");
+        roomMap[roomId].player1Status = false;
+        roomMap[roomId].player2Status = false;
+        roomMap[roomId].currentBoard = [];
+        roomMap[roomId].currentMatch = res._id;
+        
+        io.to(data.roomId).emit("newMatchCreated", { roomInfo: roomMap[roomId] });
+      }).catch(err => {
+        console.log(err);
+      });
+      
+    })
+  );
+
   // roomId, position
   socket.on(
     "play",
@@ -217,20 +239,6 @@ const room = (io, socket) => {
           }
         }
       }
-
-      const match = new Match({
-        roomId: roomId,
-      });
-      match.save().then((err, res) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
-        roomMap[roomId].player1Status = false;
-        roomMap[roomId].player2Status = false;
-        roomMap[roomId].currentBoard = [];
-        roomMap[roomId].currentMatch = res._id;
-      });
     })
   );
 };
