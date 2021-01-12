@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt-nodejs");
 const jwt = require("jsonwebtoken");
 const jwt_secret = require("../config/config");
 
-let user = mongoose.Schema({
+let UserSchema = new mongoose.Schema({
   username: {
     type: String,
     unique: true,
@@ -94,18 +94,28 @@ let user = mongoose.Schema({
   blocked: {
     type: Boolean,
     default: false,
+  },
+});
+
+UserSchema.pre("findOneAndUpdate", async function (next) {
+  const doc = await this.model.findOne(this.getQuery());
+  if (doc) {
+    const res = doc.win - doc.lose;
+    const winRatio =
+      (doc.win / (doc.lose + doc.win === 0 ? 1 : doc.lose + doc.win)) * 100;
+    const update = await this.model.updateOne(
+      { _id: doc._id },
+      { cup: res, winRatio: winRatio.toFixed(2) },
+      { new: true }
+    );
+
+    if (update) {
+      next();
+    }
   }
 });
 
-user.pre("save", async function (next) {
-  const res = this.win - this.lose;
-  this.cup = res > 0 ? res : 0;
-  this.winRatio = (this.win / (this.lose > 0 ? this.lose : 1)) * 100;
-
-  next();
-});
-
-user.methods.generateJWT = (username) => {
+UserSchema.methods.generateJWT = (username) => {
   const today = new Date();
   const expirationDate = new Date(today);
   expirationDate.setMinutes(today.getMinutes() + 3600);
@@ -119,12 +129,12 @@ user.methods.generateJWT = (username) => {
   );
 };
 
-user.methods.generateHash = function (password) {
+UserSchema.methods.generateHash = function (password) {
   return bcrypt.hashSync(password, bcrypt.genSaltSync(12), null);
 };
 
-user.methods.validPassword = function (password) {
+UserSchema.methods.validPassword = function (password) {
   return bcrypt.compareSync(password, this.password);
 };
 
-module.exports = mongoose.model("User", user);
+module.exports = mongoose.model("User", UserSchema);

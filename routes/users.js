@@ -7,6 +7,7 @@ const auth = require('../middlewares/auth');
 
 router.post('/sign-up', usersController.signup);
 router.post('/sign-in', usersController.signin);
+router.put('/:id', usersController.updateUser);
 router.get('/active-email/:token', usersController.activeAccount);
 router.post('/resend-active-email', usersController.resendActiveAccount);
 router.post('/forgot-password', usersController.forgotPassword);

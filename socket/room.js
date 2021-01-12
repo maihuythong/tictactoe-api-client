@@ -51,7 +51,15 @@ const room = (io, socket) => {
         );
         io.in(roomId).emit("viewerTrigger", roomMap[roomId].viewers);
         socket.leave(roomId);
+        if(roomMap[roomId].viewers.length === 0){
+          console.log('call update');
+          const doc = await Room.findOneAndUpdate({roomId: roomId}, {status: 'completed'}, {new: true})
+          
+          const rooms = await Room.find({ status: ["waiting player", "playing"] });
+          io.emit("newRoomCreated", rooms);
+        }
       }
+
     })
   );
 
@@ -122,6 +130,13 @@ const room = (io, socket) => {
           player1Status: roomMap[roomId].player1Status,
           player2Status: roomMap[roomId].player2Status,
         });
+
+        if(roomMap[roomId].player1Status && roomMap[roomId].player2Status){
+          const doc = await Room.findOneAndUpdate({roomId: roomId}, {status: 'playing'}, {new: true})
+          
+          const rooms = await Room.find({ status: ["waiting player", "playing"] });
+          io.emit("newRoomCreated", rooms);
+        }
       }
     })
   );
@@ -171,6 +186,7 @@ const room = (io, socket) => {
     "finishGame",
     catchAsyncSocket(async (data) => {
       const roomId = data.roomId;
+      console.log(data);
       const doc = await Match.findOneAndUpdate(
         { _id: roomMap[roomId].currentMatch },
         {
@@ -185,6 +201,7 @@ const room = (io, socket) => {
       );
 
       if (doc) {
+        
         io.in(roomId).emit("gameFinished", {
           isDraw: data.isDraw,
           winner: data?.winner ?? null,
