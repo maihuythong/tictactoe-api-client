@@ -183,6 +183,18 @@ const room = (io, socket) => {
   );
 
   socket.on(
+    "inviteUser",
+    catchAsyncSocket(async (data) => {
+      console.log(data);
+      socket.broadcast.emit("haveInvitation", {
+       roomId: data.roomId,
+       userInvite: data.userInvite,
+       userId: data.userId,
+      });
+    })
+  );
+
+  socket.on(
     "finishGame",
     catchAsyncSocket(async (data) => {
       const roomId = data.roomId;

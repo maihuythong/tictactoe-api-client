@@ -48,6 +48,37 @@ exports.joinRoom = catchAsync(async (req, res, next) => {
     );
   }
 });
+exports.joinRoomInvite = catchAsync(async (req, res, next) => {
+  const roomId = req.params.id;
+  const room = await Room.findOne({ roomId: roomId });
+  if (room) {
+    const updateRoom = await Room.findOneAndUpdate(
+      { roomId: roomId },
+      { $push: { viewers: req.user } }
+    );
+    if (updateRoom) {
+      const roomId = req.params.id;
+      const matches = await Match.find({ roomId: roomId });
+      if (roomMap[roomId] !== undefined) {
+        res
+          .status(200)
+          .json({
+            status: "success",
+            message: "Join room successfully!",
+            body: { roomInfo: roomMap[roomId], matches: matches },
+          });
+      } else {
+        next(new ErrorHandler(400, "Cant find roomId in maps socket!"));
+      }
+    } else {
+      return next(new ErrorHandler(400, "Can't join room!"));
+    }
+  } else {
+    next(
+      new ErrorHandler(400, "Something went wrong! Please try again later!")
+    );
+  }
+});
 
 exports.getRoomInfo = catchAsync(async (req, res, next) => {
   const roomId = req.params.id;
