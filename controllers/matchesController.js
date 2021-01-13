@@ -11,7 +11,7 @@ exports.getOneMatch = factoryController.getOne(Match);
 
 exports.getAllMatchOfUser = catchAsync(async (req, res, next) => {
     const userId = req.params.id;
-    const doc = await Match.find({ winner: userId }, { loser: userId });
+    const doc = await Match.find({$or:[{ winner: userId }, { loser: userId }]});
     if (doc) {
         res.status(200).json({
             status: "success",

@@ -52,8 +52,7 @@ const room = (io, socket) => {
         io.in(roomId).emit("viewerTrigger", roomMap[roomId].viewers);
         socket.leave(roomId);
         if(roomMap[roomId].viewers.length === 0){
-          console.log('call update');
-          const doc = await Room.findOneAndUpdate({roomId: roomId}, {status: 'completed'}, {new: true})
+          await Room.findOneAndUpdate({roomId: roomId}, {status: 'completed'}, {new: true})
           
           const rooms = await Room.find({ status: ["waiting player", "playing"] });
           io.emit("newRoomCreated", rooms);
@@ -149,7 +148,6 @@ const room = (io, socket) => {
         roomId: roomId,
       });
       match.save().then((res) => {
-        console.log("start new match");
         roomMap[roomId].player1Status = false;
         roomMap[roomId].player2Status = false;
         roomMap[roomId].currentBoard = [];
@@ -185,7 +183,6 @@ const room = (io, socket) => {
   socket.on(
     "inviteUser",
     catchAsyncSocket(async (data) => {
-      console.log(data);
       socket.broadcast.emit("haveInvitation", {
        roomId: data.roomId,
        userInvite: data.userInvite,
@@ -198,7 +195,6 @@ const room = (io, socket) => {
     "finishGame",
     catchAsyncSocket(async (data) => {
       const roomId = data.roomId;
-      console.log(data);
       const doc = await Match.findOneAndUpdate(
         { _id: roomMap[roomId].currentMatch },
         {
@@ -207,6 +203,7 @@ const room = (io, socket) => {
           history: roomMap[roomId].currentBoard,
           messages: data.messages,
           isDraw: data.isDraw,
+          winnerTurn: data.winnerTurn,
           winLine: data.winLine
         },
         { new: true }
@@ -228,11 +225,6 @@ const room = (io, socket) => {
           player1Status: roomMap[roomId].player1Status,
           player2Status: roomMap[roomId].player2Status,
         });
-
-        console.log('====================================');
-        console.log(roomId);
-        console.log(doc._id);
-        console.log('====================================');
 
         if (data.isDraw) {
           try {

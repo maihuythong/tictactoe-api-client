@@ -8,6 +8,7 @@ const auth = require('../middlewares/auth');
 router.post('/sign-up', usersController.signup);
 router.post('/sign-in', usersController.signin);
 router.put('/:id', usersController.updateUser);
+router.get('/info/:id', usersController.getUser);
 router.get('/active-email/:token', usersController.activeAccount);
 router.post('/resend-active-email', usersController.resendActiveAccount);
 router.post('/forgot-password', usersController.forgotPassword);
@@ -35,7 +36,6 @@ router.get(
     res.redirect(process.env.FRONT_END_URL + '/login?token=' + token);
   }
 );
-
 router.get('/me', auth, usersController.getMe);
 router.put('/me', auth, usersController.updateInfo);
 

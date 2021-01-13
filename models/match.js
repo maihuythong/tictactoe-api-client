@@ -22,6 +22,10 @@ const MatchSchema = new mongoose.Schema({
         ref: "User",
         type: mongoose.ObjectId,
     },
+    winnerTurn: {
+        type: String,
+        default: 'O',
+    },
     loser: {
         ref: "User",
         type: mongoose.ObjectId,
