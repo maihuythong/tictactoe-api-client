@@ -4,6 +4,7 @@ const User = require("../models/user");
 const catchAsyncSocket = require("../helpers/catchAsyncSocket");
 const { verifyToken } = require("../helpers/tokenUtils");
 const roomMap = require('../database/roomMap');
+const {quickPlay, pushUser, removeUser, checkHaveMatch} = require('../database/ArrayQuickPlay');
 const room = (io, socket) => {
   socket.on(
     "createNewRoom",
@@ -61,6 +62,44 @@ const room = (io, socket) => {
 
     })
   );
+
+  socket.on(
+    "quickPlay",
+    catchAsyncSocket(async (data) => {
+      await pushUser(data.user);
+      const users = checkHaveMatch(data.user);
+      if(users){
+        const doc = await Room.create({creator: users.user1, name: "Quick Match"});
+        const match = await Match.create({ roomId: doc.roomId });
+        if(doc){
+          const newRoom = {
+            viewers: [],
+            player1Status: false,
+            player2Status: false,
+            player1: users.user1,
+            player2: users.user2,
+            currentBoard: [],
+            currentMatch: match._id,
+          }
+          roomMap[doc.roomId] = newRoom;
+          removeUser(users.user1);
+          removeUser(users.user2);
+          io.emit("haveQuickPlay", {
+            roomId: doc.roomId,
+            user1: users.user1,
+            user2: users.user2,
+          })
+          
+        }
+      }
+    }
+  ));
+  socket.on(
+    "removeQuickPlay",
+    catchAsyncSocket(async (data) => {
+      removeUser(data.user);  
+    }
+  ));
 
   // token, roomId, chair = true = 1, false = 2
   socket.on(
