@@ -110,11 +110,11 @@ const room = (io, socket) => {
       const user = await User.findOne({ username: decodedToken.username });
       if (decodedToken) {
         if (data.chair) {
-          if (!roomMap[roomId]?.player1) {
+          if (!roomMap[roomId].player1) {
             roomMap[roomId].player1 = user;
           }
         } else {
-          if (!roomMap[roomId]?.player2) {
+          if (!roomMap[roomId].player2) {
             roomMap[roomId].player2 = user;
           }
         }
@@ -133,10 +133,10 @@ const room = (io, socket) => {
       const roomId = data.roomId;
       const decodedToken = await verifyToken(data.token);
       if (decodedToken) {
-        if (roomMap[roomId]?.player1?.username === decodedToken.username) {
+        if (roomMap[roomId].player1.username === decodedToken.username) {
           roomMap[roomId].player1 = null;
         }
-        if (roomMap[roomId]?.player2?.username === decodedToken.username) {
+        if (roomMap[roomId].player2.username === decodedToken.username) {
           roomMap[roomId].player2 = null;
         }
 
@@ -157,10 +157,10 @@ const room = (io, socket) => {
       const roomId = data.roomId;
       const decodedToken = await verifyToken(data.token);
       if (decodedToken) {
-        if (roomMap[roomId].player1?.username === decodedToken.username) {
+        if (roomMap[roomId].player1.username === decodedToken.username) {
           roomMap[roomId].player1Status = data.status;
         }
-        if (roomMap[roomId]?.player2?.username === decodedToken.username) {
+        if (roomMap[roomId].player2.username === decodedToken.username) {
           roomMap[roomId].player2Status = data.status;
         }
 
@@ -205,7 +205,7 @@ const room = (io, socket) => {
     "play",
     catchAsyncSocket(async (data) => {
       const roomId = data.roomId;
-      roomMap[roomId]?.currentBoard.push(data.position);
+      roomMap[roomId].currentBoard.push(data.position);
       io.to(data.roomId).emit("newPlay", { position: data.position });
     })
   );
@@ -252,9 +252,9 @@ const room = (io, socket) => {
         
         io.in(roomId).emit("gameFinished", {
           isDraw: data.isDraw,
-          winner: data?.winner ?? null,
-          loser: data?.loser ?? null,
-          winLine: data?.winLine ?? null,
+          winner: data.winner ?? null,
+          loser: data.loser ?? null,
+          winLine: data.winLine ?? null,
         });
 
         roomMap[roomId].player1Status = false,
