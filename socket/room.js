@@ -3,8 +3,13 @@ const Match = require("../models/match");
 const User = require("../models/user");
 const catchAsyncSocket = require("../helpers/catchAsyncSocket");
 const { verifyToken } = require("../helpers/tokenUtils");
-const roomMap = require('../database/roomMap');
-const {quickPlay, pushUser, removeUser, checkHaveMatch} = require('../database/ArrayQuickPlay');
+const roomMap = require("../database/roomMap");
+const {
+  quickPlay,
+  pushUser,
+  removeUser,
+  checkHaveMatch,
+} = require("../database/ArrayQuickPlay");
 const room = (io, socket) => {
   socket.on(
     "createNewRoom",
@@ -19,7 +24,7 @@ const room = (io, socket) => {
         player2: null,
         currentBoard: [],
         currentMatch: data.matchId,
-      }
+      };
       roomMap[roomId] = newRoom;
       io.emit("newRoomCreated", rooms);
     })
@@ -52,14 +57,19 @@ const room = (io, socket) => {
         );
         io.in(roomId).emit("viewerTrigger", roomMap[roomId].viewers);
         socket.leave(roomId);
-        if(roomMap[roomId].viewers.length === 0){
-          await Room.findOneAndUpdate({roomId: roomId}, {status: 'completed'}, {new: true})
-          
-          const rooms = await Room.find({ status: ["waiting player", "playing"] });
+        if (roomMap[roomId].viewers.length === 0) {
+          await Room.findOneAndUpdate(
+            { roomId: roomId },
+            { status: "completed" },
+            { new: true }
+          );
+
+          const rooms = await Room.find({
+            status: ["waiting player", "playing"],
+          });
           io.emit("newRoomCreated", rooms);
         }
       }
-
     })
   );
 
@@ -68,10 +78,13 @@ const room = (io, socket) => {
     catchAsyncSocket(async (data) => {
       await pushUser(data.user);
       const users = checkHaveMatch(data.user);
-      if(users){
-        const doc = await Room.create({creator: users.user1, name: "Quick Match"});
+      if (users) {
+        const doc = await Room.create({
+          creator: users.user1,
+          name: "Quick Match",
+        });
         const match = await Match.create({ roomId: doc.roomId });
-        if(doc){
+        if (doc) {
           const newRoom = {
             viewers: [],
             player1Status: false,
@@ -80,7 +93,7 @@ const room = (io, socket) => {
             player2: users.user2,
             currentBoard: [],
             currentMatch: match._id,
-          }
+          };
           roomMap[doc.roomId] = newRoom;
           removeUser(users.user1);
           removeUser(users.user2);
@@ -88,18 +101,17 @@ const room = (io, socket) => {
             roomId: doc.roomId,
             user1: users.user1,
             user2: users.user2,
-          })
-          
+          });
         }
       }
-    }
-  ));
+    })
+  );
   socket.on(
     "removeQuickPlay",
     catchAsyncSocket(async (data) => {
-      removeUser(data.user);  
-    }
-  ));
+      removeUser(data.user);
+    })
+  );
 
   // token, roomId, chair = true = 1, false = 2
   socket.on(
@@ -140,8 +152,6 @@ const room = (io, socket) => {
           roomMap[roomId].player2 = null;
         }
 
-        
-
         io.in(roomId).emit("playerPickChair", {
           player1: roomMap[roomId].player1,
           player2: roomMap[roomId].player2,
@@ -169,10 +179,16 @@ const room = (io, socket) => {
           player2Status: roomMap[roomId].player2Status,
         });
 
-        if(roomMap[roomId].player1Status && roomMap[roomId].player2Status){
-          const doc = await Room.findOneAndUpdate({roomId: roomId}, {status: 'playing'}, {new: true})
-          
-          const rooms = await Room.find({ status: ["waiting player", "playing"] });
+        if (roomMap[roomId].player1Status && roomMap[roomId].player2Status) {
+          const doc = await Room.findOneAndUpdate(
+            { roomId: roomId },
+            { status: "playing" },
+            { new: true }
+          );
+
+          const rooms = await Room.find({
+            status: ["waiting player", "playing"],
+          });
           io.emit("newRoomCreated", rooms);
         }
       }
@@ -182,21 +198,25 @@ const room = (io, socket) => {
   socket.on(
     "startNewMatch",
     catchAsyncSocket(async (data) => {
-      const roomId = data.roomId
+      const roomId = data.roomId;
       const match = new Match({
         roomId: roomId,
       });
-      match.save().then((res) => {
-        roomMap[roomId].player1Status = false;
-        roomMap[roomId].player2Status = false;
-        roomMap[roomId].currentBoard = [];
-        roomMap[roomId].currentMatch = res._id;
-        
-        io.to(data.roomId).emit("newMatchCreated", { roomInfo: roomMap[roomId] });
-      }).catch(err => {
-        console.log(err);
-      });
-      
+      match
+        .save()
+        .then((res) => {
+          roomMap[roomId].player1Status = false;
+          roomMap[roomId].player2Status = false;
+          roomMap[roomId].currentBoard = [];
+          roomMap[roomId].currentMatch = res._id;
+
+          io.to(data.roomId).emit("newMatchCreated", {
+            roomInfo: roomMap[roomId],
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     })
   );
 
@@ -223,9 +243,9 @@ const room = (io, socket) => {
     "inviteUser",
     catchAsyncSocket(async (data) => {
       socket.broadcast.emit("haveInvitation", {
-       roomId: data.roomId,
-       userInvite: data.userInvite,
-       userId: data.userId,
+        roomId: data.roomId,
+        userInvite: data.userInvite,
+        userId: data.userId,
       });
     })
   );
@@ -243,27 +263,25 @@ const room = (io, socket) => {
           messages: data.messages,
           isDraw: data.isDraw,
           winnerTurn: data.winnerTurn,
-          winLine: data.winLine
+          winLine: data.winLine,
         },
         { new: true }
       );
 
       if (doc) {
-        
         io.in(roomId).emit("gameFinished", {
           isDraw: data.isDraw,
-          winner: data.winner ?? null,
-          loser: data.loser ?? null,
-          winLine: data.winLine ?? null,
+          winner: data.winner ? data.winner : null,
+          loser: data.loser ? data.loser : null,
+          winLine: data.winLine ? data.winLine : null,
         });
 
-        roomMap[roomId].player1Status = false,
-        roomMap[roomId].player2Status = false,
-
-        io.in(roomId).emit("playerStatusChange", {
-          player1Status: roomMap[roomId].player1Status,
-          player2Status: roomMap[roomId].player2Status,
-        });
+        (roomMap[roomId].player1Status = false),
+          (roomMap[roomId].player2Status = false),
+          io.in(roomId).emit("playerStatusChange", {
+            player1Status: roomMap[roomId].player1Status,
+            player2Status: roomMap[roomId].player2Status,
+          });
 
         if (data.isDraw) {
           try {
