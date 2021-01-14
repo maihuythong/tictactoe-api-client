@@ -95,8 +95,6 @@ const room = (io, socket) => {
             currentMatch: match._id,
           };
           roomMap[doc.roomId] = newRoom;
-          removeUser(users.user1);
-          removeUser(users.user2);
           io.emit("haveQuickPlay", {
             roomId: doc.roomId,
             user1: users.user1,
@@ -145,10 +143,10 @@ const room = (io, socket) => {
       const roomId = data.roomId;
       const decodedToken = await verifyToken(data.token);
       if (decodedToken) {
-        if (roomMap[roomId].player1.username === decodedToken.username) {
+        if (roomMap[roomId].player1 && roomMap[roomId].player1.username === decodedToken.username) {
           roomMap[roomId].player1 = null;
         }
-        if (roomMap[roomId].player2.username === decodedToken.username) {
+        if (roomMap[roomId].player1 && roomMap[roomId].player2.username === decodedToken.username) {
           roomMap[roomId].player2 = null;
         }
 
@@ -167,10 +165,10 @@ const room = (io, socket) => {
       const roomId = data.roomId;
       const decodedToken = await verifyToken(data.token);
       if (decodedToken) {
-        if (roomMap[roomId].player1.username === decodedToken.username) {
+        if (roomMap[roomId].player1 && roomMap[roomId].player1.username === decodedToken.username) {
           roomMap[roomId].player1Status = data.status;
         }
-        if (roomMap[roomId].player2.username === decodedToken.username) {
+        if (roomMap[roomId].player1 && roomMap[roomId].player2.username === decodedToken.username) {
           roomMap[roomId].player2Status = data.status;
         }
 
@@ -276,12 +274,12 @@ const room = (io, socket) => {
           winLine: data.winLine ? data.winLine : null,
         });
 
-        (roomMap[roomId].player1Status = false),
-          (roomMap[roomId].player2Status = false),
-          io.in(roomId).emit("playerStatusChange", {
-            player1Status: roomMap[roomId].player1Status,
-            player2Status: roomMap[roomId].player2Status,
-          });
+        roomMap[roomId].player1Status = false;
+        roomMap[roomId].player2Status = false;
+        io.in(roomId).emit("playerStatusChange", {
+          player1Status: roomMap[roomId].player1Status,
+          player2Status: roomMap[roomId].player2Status,
+        });
 
         if (data.isDraw) {
           try {
