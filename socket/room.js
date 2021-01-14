@@ -29,7 +29,7 @@ const room = (io, socket) => {
   socket.on(
     "joinRoom",
     catchAsyncSocket(async (data) => {
-      const roomId = data?.roomId.toString();
+      const roomId = data.roomId.toString();
       const decodedToken = await verifyToken(data.token);
       if (decodedToken) {
         const user = await User.findOne({ username: decodedToken.username });
