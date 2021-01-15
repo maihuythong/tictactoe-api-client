@@ -20,7 +20,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 
       if (passportUser) {
         const token = passportUser.generateJWT(passportUser.username);
-        const url = `${process.env.SERVER_URL_LOCAL}/users/active-email/${token}`;
+        const url = `${process.env.SERVER_URL}/users/active-email/${token}`;
         await new Email(passportUser, url).sendWelcome();
         return res.status(201).json({
           status: "success",
@@ -123,14 +123,14 @@ exports.activeAccount = catchAsync(async (req, res, next) => {
     );
     if (doc) {
       res.redirect(
-        `${process.env.FRONT_END_URL_LOCAL}/active-email/?status=success&username=${username}`
+        `${process.env.FRONT_END_URL}/active-email/?status=success&username=${username}`
       );
     } else {
       next(new ErrorHandler(400, "Authentication failed!"));
     }
   } else {
     res.redirect(
-      `${process.env.FRONT_END_URL_LOCAL}/active-email/?status=expired`
+      `${process.env.FRONT_END_URL}/active-email/?status=expired`
     );
   }
 });
@@ -140,7 +140,7 @@ exports.resendActiveAccount = catchAsync(async (req, res, next) => {
   const doc = await User.findOne({ email: email, active: false });
   if (doc) {
     const token = doc.generateJWT(doc.username);
-    const url = `${process.env.SERVER_URL_LOCAL}/users/active-email/${token}`;
+    const url = `${process.env.SERVER_URL}/users/active-email/${token}`;
     await new Email(doc, url).sendWelcome();
     return res.status(200).json({
       status: "success",
